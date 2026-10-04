@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Go tests & frontend checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Go vet & test
+        run: |
+          go vet ./internal/...
+          go test -race ./internal/...
+      - name: Frontend type-check
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run check
+
+  build:
+    name: macOS build
+    runs-on: macos-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+      - name: Build
+        run: wails build -platform darwin/universal
+      # Zip with ditto: upload-artifact would drop the executable bit.
+      - name: Package
+        run: ditto -c -k --keepParent build/bin/Pigeon.app Pigeon-macos-universal.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pigeon-macos-universal
+          path: Pigeon-macos-universal.zip

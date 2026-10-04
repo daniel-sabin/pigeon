@@ -1,0 +1,13 @@
+# Build output
+build/bin
+frontend/dist
+
+# Dependencies
+node_modules
+
+# OS / editors
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+frontend/package.json.md5

@@ -1,0 +1,123 @@
+:root {
+  --bg: #18191d;
+  --bg-side: #1e1f24;
+  --bg-hover: #2a2c33;
+  --bg-active: #2f3340;
+  --border: #2e3038;
+  --text: #e3e4e8;
+  --text-dim: #8b8e98;
+  --accent: #ff7a45;
+  --green: #4ec98a;
+  --yellow: #e5c07b;
+  --blue: #61afef;
+  --purple: #c678dd;
+  --red: #ef6b6b;
+  --mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  outline: none;
+  user-select: text;
+}
+input:focus,
+select:focus {
+  border-color: #4a4e5c;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+}
+
+.btn {
+  background: var(--bg-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--bg-active);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1a1a;
+  min-width: 72px;
+}
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.icon {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.icon:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.m-GET { color: var(--green); }
+.m-POST { color: var(--yellow); }
+.m-PUT { color: var(--blue); }
+.m-PATCH { color: var(--purple); }
+.m-DELETE { color: var(--red); }
+.m-HEAD,
+.m-OPTIONS { color: var(--text-dim); }
+
+.s2 { color: var(--green); }
+.s3 { color: var(--blue); }
+.s4 { color: var(--yellow); }
+.s5 { color: var(--red); }
+.s0 { color: var(--text-dim); }
+
+.mono {
+  font-family: var(--mono);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3d47;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}

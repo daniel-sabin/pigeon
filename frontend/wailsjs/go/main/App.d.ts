@@ -11,6 +11,12 @@ export function GetCollections():Promise<Array<storage.Collection>>;
 
 export function GetHistory():Promise<Array<storage.HistoryEntry>>;
 
+export function ImportOpenAPIFile():Promise<storage.Collection>;
+
+export function ImportOpenAPIPath(arg1:string):Promise<storage.Collection>;
+
+export function ImportOpenAPIURL(arg1:string):Promise<storage.Collection>;
+
 export function SaveCollections(arg1:Array<storage.Collection>):Promise<void>;
 
 export function SendRequest(arg1:string,arg2:engine.Request):Promise<engine.Response>;

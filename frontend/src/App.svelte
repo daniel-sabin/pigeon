@@ -4,6 +4,8 @@
   import RequestPanel from './components/RequestPanel.svelte'
   import ResponsePanel from './components/ResponsePanel.svelte'
   import SaveDialog from './components/SaveDialog.svelte'
+  import ImportDialog from './components/ImportDialog.svelte'
+  import { OnFileDrop, OnFileDropOff } from '../wailsjs/runtime/runtime'
   import * as api from './lib/api'
   import { paramsFromUrl } from './lib/url'
   import {
@@ -22,7 +24,9 @@
   let collections = $state<Collection[]>([])
   let history = $state<HistoryEntry[]>([])
   let showSave = $state(false)
+  let showImport = $state(false)
   let notice = $state('')
+  let noticeError = $state(false)
 
   let split = $state(45) // request panel height, in % of the main area
   let main: HTMLElement
@@ -39,9 +43,20 @@
     }
   })
 
-  function flash(msg: string) {
+  // Files dropped on the window are imported as OpenAPI specs.
+  onMount(() => {
+    try {
+      OnFileDrop((_x, _y, paths) => importDropped(paths), true)
+      return () => OnFileDropOff()
+    } catch {
+      // not running inside Wails (e.g. plain browser preview)
+    }
+  })
+
+  function flash(msg: string, error = false) {
     notice = msg
-    setTimeout(() => notice === msg && (notice = ''), 3000)
+    noticeError = error
+    setTimeout(() => notice === msg && (notice = ''), error ? 6000 : 3000)
   }
 
   function load(req: Request, from: Origin | null) {
@@ -115,6 +130,32 @@
     persist()
   }
 
+  function addImported(col: Collection) {
+    const names = new Set(collections.map((c) => c.name))
+    let name = col.name
+    for (let i = 2; names.has(name); i++) name = `${col.name} (${i})`
+    const requests = (col.requests ?? []).map(normalizeRequest)
+    collections.push({ ...col, name, requests })
+    showImport = false
+    persist()
+    flash(`Imported ${requests.length} requests into “${name}”`)
+  }
+
+  async function importDropped(paths: string[]) {
+    const specs = paths.filter((p) => /\.(json|ya?ml)$/i.test(p))
+    if (specs.length === 0) {
+      flash('Drop a .json or .yaml OpenAPI / Swagger file to import it', true)
+      return
+    }
+    for (const path of specs) {
+      try {
+        addImported(await api.importFromPath(path))
+      } catch (e) {
+        flash(`${path.split('/').pop()}: ${e}`, true)
+      }
+    }
+  }
+
   async function clearHistory() {
     await api.clearHistory()
     history = []
@@ -148,11 +189,11 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="app">
+<div class="app" style="--wails-drop-target: drop">
   <header class="titlebar" style="--wails-draggable:drag">
     <span class="title">{title}</span>
     {#if origin && dirty}<span class="dot" title="Unsaved changes">●</span>{/if}
-    {#if notice}<span class="notice">{notice}</span>{/if}
+    {#if notice}<span class="notice" class:error={noticeError}>{notice}</span>{/if}
   </header>
 
   <div class="body">
@@ -164,6 +205,7 @@
       onchange={persist}
       onclearhistory={clearHistory}
       onnew={newTab}
+      onimport={() => (showImport = true)}
     />
 
     <main bind:this={main}>
@@ -177,6 +219,10 @@
     </main>
   </div>
 </div>
+
+{#if showImport}
+  <ImportDialog onimport={addImported} onclose={() => (showImport = false)} />
+{/if}
 
 {#if showSave}
   <SaveDialog {collections} defaultName={request.name || request.url || 'New request'} onsave={saveAs} onclose={() => (showSave = false)} />
@@ -214,7 +260,30 @@
   .notice {
     position: absolute;
     right: 14px;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: var(--green);
+  }
+  .notice.error {
+    color: var(--red);
+  }
+  /* Wails adds this class while files are dragged over the window. */
+  .app:global(.wails-drop-target-active)::after {
+    content: 'Drop an OpenAPI / Swagger file to import it';
+    position: fixed;
+    inset: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--accent);
+    border-radius: 12px;
+    background: rgba(24, 25, 29, 0.85);
+    color: var(--text);
+    font-size: 15px;
+    z-index: 20;
+    pointer-events: none;
   }
   .body {
     flex: 1;

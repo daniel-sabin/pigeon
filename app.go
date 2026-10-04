@@ -4,11 +4,14 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/daniel-sabin/pigeon/internal/engine"
+	"github.com/daniel-sabin/pigeon/internal/openapi"
 	"github.com/daniel-sabin/pigeon/internal/storage"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -88,6 +91,43 @@ func (a *App) GetHistory() ([]storage.HistoryEntry, error) {
 
 func (a *App) ClearHistory() error {
 	return a.store.ClearHistory()
+}
+
+// ImportOpenAPIURL builds a collection from a Swagger/OpenAPI document URL,
+// or from a Swagger UI page that references one.
+func (a *App) ImportOpenAPIURL(rawURL string) (storage.Collection, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, time.Minute)
+	defer cancel()
+	return openapi.Fetch(ctx, a.client, rawURL)
+}
+
+// ImportOpenAPIFile asks for a local spec file and builds a collection from
+// it. It returns nil when the dialog is cancelled.
+func (a *App) ImportOpenAPIFile() (*storage.Collection, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Import an OpenAPI / Swagger file",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "OpenAPI / Swagger (*.json, *.yaml, *.yml)", Pattern: "*.json;*.yaml;*.yml"},
+		},
+	})
+	if err != nil || path == "" {
+		return nil, err
+	}
+	col, err := a.ImportOpenAPIPath(path)
+	if err != nil {
+		return nil, err
+	}
+	return &col, nil
+}
+
+// ImportOpenAPIPath builds a collection from a spec file on disk (used for
+// files dropped on the window).
+func (a *App) ImportOpenAPIPath(path string) (storage.Collection, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return storage.Collection{}, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return openapi.Parse(data, path)
 }
 
 func newID() string {

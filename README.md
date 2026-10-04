@@ -46,6 +46,12 @@ Postman and friends have grown into heavy, cloud-connected platforms. Pigeon is 
 - Image preview; binary content detection
 - Copy the body in one click
 
+**Import from OpenAPI / Swagger**
+- Create a collection from a Swagger 2.0 or OpenAPI 3.x document, in JSON or YAML
+- From a URL, a local file, or by dropping the file on the window
+- Paste the address of a Swagger UI page: Pigeon finds the spec behind it
+- Requests come ready to send: server URL, path and query params, headers, auth type and an example JSON body generated from the schemas
+
 **Organization**
 - Collections: save requests, rename (double-click) and delete them
 - History of the last 300 requests, one click to reopen any of them
@@ -84,6 +90,27 @@ xattr -dr com.apple.quarantine /Applications/Pigeon.app
 3. Press **⌘↵** to send.
 4. Press **⌘S** to save the request to a collection.
 
+### Import an OpenAPI / Swagger spec
+
+Click **⇣** at the top of the sidebar, then either:
+
+- paste the URL of the spec (`https://petstore3.swagger.io/api/v3/openapi.json`) **or of its Swagger UI page** (`https://petstore3.swagger.io/`) and press **Import**,
+- or click **Choose a file…** to pick a local `.json` / `.yaml` file.
+
+You can also drop a spec file anywhere on the window.
+
+Pigeon creates one collection named after the API, with one request per operation, in the order of the spec:
+
+| From the spec | In the request |
+|---|---|
+| First server (`servers` / `host` + `basePath`) | Base of every URL; relative servers are resolved against the spec's URL |
+| Path parameters | Replaced by their example or default value, otherwise left as `{name}` |
+| Query and header parameters | Added with their example, default or first enum value; optional ones are added but disabled |
+| Request body | JSON example (from `example`, `examples` or generated from the schema), form fields or XML/text |
+| Security scheme | Bearer or Basic auth, or the API key header / query param, left empty for you to fill |
+
+Only local `$ref`s are resolved (`#/components/...`, `#/definitions/...`). References to other files and multipart bodies with file uploads are not imported yet.
+
 ### Keyboard shortcuts
 
 | Shortcut | Action |
@@ -121,6 +148,8 @@ Both are plain, pretty-printed JSON. To back them up or sync them between machin
 - [ ] Multiple requests open in tabs
 - [ ] Multipart bodies and file uploads
 - [ ] Per-request settings: timeout, redirects, TLS verification
+- [x] Import OpenAPI / Swagger specs
+- [ ] Re-sync a collection with its OpenAPI spec
 - [ ] Import Postman collections
 - [ ] Signed and notarized releases
 

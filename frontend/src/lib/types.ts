@@ -38,6 +38,7 @@ export interface Response {
 export interface Collection {
   id: string
   name: string
+  source?: string // URL or file the collection was imported from
   requests: Request[]
 }
 

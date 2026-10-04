@@ -177,6 +177,7 @@ export namespace storage {
 	export class Collection {
 	    id: string;
 	    name: string;
+	    source?: string;
 	    requests: engine.Request[];
 	
 	    static createFrom(source: any = {}) {
@@ -187,6 +188,7 @@ export namespace storage {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.name = source["name"];
+	        this.source = source["source"];
 	        this.requests = this.convertValues(source["requests"], engine.Request);
 	    }
 	

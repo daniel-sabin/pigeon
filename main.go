@@ -44,7 +44,9 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 24, G: 25, B: 29, A: 1},
 		OnStartup:        app.startup,
-		Bind:             []interface{}{app},
+		// Spec files can be dropped on the window to import them.
+		DragAndDrop: &options.DragAndDrop{EnableFileDrop: true, DisableWebViewDrop: true},
+		Bind:        []interface{}{app},
 		Mac: &mac.Options{
 			TitleBar:   mac.TitleBarHiddenInset(),
 			Appearance: mac.NSAppearanceNameDarkAqua,

@@ -10,3 +10,6 @@ export const getCollections = async () => ((await App.GetCollections()) ?? []) a
 export const saveCollections = (cols: Collection[]) => App.SaveCollections(cols as any)
 export const getHistory = async () => ((await App.GetHistory()) ?? []) as HistoryEntry[]
 export const clearHistory = () => App.ClearHistory()
+export const importFromUrl = (url: string) => App.ImportOpenAPIURL(url) as Promise<Collection>
+export const importFromFile = () => App.ImportOpenAPIFile() as Promise<Collection | null>
+export const importFromPath = (path: string) => App.ImportOpenAPIPath(path) as Promise<Collection>

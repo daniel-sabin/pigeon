@@ -16,6 +16,7 @@ const maxHistory = 300
 type Collection struct {
 	ID       string           `json:"id"`
 	Name     string           `json:"name"`
+	Source   string           `json:"source,omitempty"` // URL or file it was imported from
 	Requests []engine.Request `json:"requests"`
 }
 

@@ -11,8 +11,9 @@
     onchange: () => void
     onclearhistory: () => void
     onnew: () => void
+    onimport: () => void
   }
-  let { collections = $bindable(), history, origin, onopen, onchange, onclearhistory, onnew }: Props = $props()
+  let { collections = $bindable(), history, origin, onopen, onchange, onclearhistory, onnew, onimport }: Props = $props()
 
   let view = $state<'collections' | 'history'>('collections')
   let collapsed = $state<Record<string, boolean>>({})
@@ -72,10 +73,14 @@
       <input class="filter" placeholder="Filter" bind:value={filter} />
       <button class="icon" title="New request (⌘N)" onclick={onnew}>＋</button>
       <button class="icon" title="New collection" onclick={addCollection}>⊞</button>
+      <button class="icon" title="Import from OpenAPI / Swagger" onclick={onimport}>⇣</button>
     </div>
     <div class="list">
       {#if collections.length === 0}
-        <p class="empty">No collections yet. Save a request with ⌘S to create one.</p>
+        <p class="empty">
+          No collections yet. Save a request with ⌘S, or
+          <button class="inline-link" onclick={onimport}>import an OpenAPI / Swagger spec</button>.
+        </p>
       {/if}
       {#each collections as col (col.id)}
         <div class="row folder" ondblclick={() => (renaming = col.id)} role="treeitem" aria-selected="false" aria-expanded={!collapsed[col.id]} tabindex="0"
@@ -85,7 +90,7 @@
             <input class="rename" value={col.name} use:focus onclick={(e) => e.stopPropagation()}
               onblur={(e) => finishRename(e, (n) => (col.name = n))} onkeydown={renameKeys} />
           {:else}
-            <span class="name">{col.name}</span>
+            <span class="name" title={col.source ? `Imported from ${col.source}` : col.name}>{col.name}</span>
             <span class="muted">{col.requests.length}</span>
             <button class="icon del" class:armed={armed === col.id} title="Delete collection"
               onclick={(e) => { e.stopPropagation(); confirmDelete(col.id, () => (collections = collections.filter((c) => c.id !== col.id))) }}>
@@ -189,6 +194,14 @@
     font-size: 12px;
     padding: 6px 14px;
     line-height: 1.5;
+  }
+  .inline-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
   }
   .row {
     display: flex;

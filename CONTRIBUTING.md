@@ -48,6 +48,7 @@ wails build -platform darwin/universal    # Intel + Apple Silicon
 ├── app.go                  # Methods exposed to the frontend (send, cancel, collections, history)
 ├── internal/
 │   ├── engine/             # Builds and sends HTTP requests, reads responses
+│   ├── openapi/            # Swagger 2.0 / OpenAPI 3.x → collection (fetch, parse, examples)
 │   └── storage/            # JSON persistence for collections and history
 ├── frontend/
 │   ├── src/

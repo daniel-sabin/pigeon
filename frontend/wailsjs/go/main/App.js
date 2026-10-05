@@ -18,6 +18,18 @@ export function GetHistory() {
   return window['go']['main']['App']['GetHistory']();
 }
 
+export function ImportOpenAPIFile() {
+  return window['go']['main']['App']['ImportOpenAPIFile']();
+}
+
+export function ImportOpenAPIPath(arg1) {
+  return window['go']['main']['App']['ImportOpenAPIPath'](arg1);
+}
+
+export function ImportOpenAPIURL(arg1) {
+  return window['go']['main']['App']['ImportOpenAPIURL'](arg1);
+}
+
 export function SaveCollections(arg1) {
   return window['go']['main']['App']['SaveCollections'](arg1);
 }

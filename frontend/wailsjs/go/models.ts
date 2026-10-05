@@ -72,6 +72,7 @@ export namespace engine {
 	export class Request {
 	    id: string;
 	    name: string;
+	    folder?: string;
 	    method: string;
 	    url: string;
 	    params: KeyValue[];
@@ -87,6 +88,7 @@ export namespace engine {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.name = source["name"];
+	        this.folder = source["folder"];
 	        this.method = source["method"];
 	        this.url = source["url"];
 	        this.params = this.convertValues(source["params"], KeyValue);

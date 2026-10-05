@@ -10,6 +10,7 @@ export type AuthType = 'none' | 'bearer' | 'basic'
 export interface Request {
   id: string
   name: string
+  folder?: string // group inside its collection (an OpenAPI tag)
   method: string
   url: string
   params: KeyValue[]
@@ -55,6 +56,23 @@ export interface HistoryEntry {
 export interface Origin {
   collectionId: string
   requestId: string
+}
+
+export interface Folder {
+  name: string // '' for requests at the collection root
+  requests: Request[]
+}
+
+/** Groups requests by folder, in order of first appearance; root requests last. */
+export function folders(requests: Request[]): Folder[] {
+  const byName = new Map<string, Request[]>()
+  for (const r of requests) {
+    const name = r.folder ?? ''
+    if (!byName.has(name)) byName.set(name, [])
+    byName.get(name)!.push(r)
+  }
+  const out = [...byName].map(([name, requests]) => ({ name, requests }))
+  return [...out.filter((f) => f.name), ...out.filter((f) => !f.name)]
 }
 
 export const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']

@@ -9,10 +9,15 @@ servers:
         default: api
 security:
   - bearerAuth: []
+tags:
+  - name: auth
+    description: Sessions
+  - name: pets
 paths:
   /pets:
     get:
       summary: List pets
+      tags: [pets]
       parameters:
         - $ref: '#/components/parameters/Limit'
         - name: status
@@ -26,6 +31,7 @@ paths:
           example: abc-123
     post:
       operationId: createPet
+      tags: [pets, admin]
       requestBody:
         content:
           application/json:
@@ -43,11 +49,13 @@ paths:
       responses: {}
     delete:
       summary: Delete a pet
+      tags: [pets]
       security:
         - apiKey: []
   /login:
     post:
       summary: Login
+      tags: [auth]
       security:
         - basic: []
       requestBody:

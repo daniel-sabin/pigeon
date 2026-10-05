@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Collection, HistoryEntry, Origin, Request } from '../lib/types'
-  import { uid } from '../lib/types'
+  import { folders, uid } from '../lib/types'
   import { statusClass, timeAgo } from '../lib/format'
 
   interface Props {
@@ -62,6 +62,25 @@
   }
 </script>
 
+{#snippet item(col: Collection, req: Request, nested: boolean)}
+  <div class="row item" class:nested class:selected={origin?.requestId === req.id} role="treeitem" aria-selected={origin?.requestId === req.id} tabindex="0"
+    onclick={() => onopen(req, { collectionId: col.id, requestId: req.id })}
+    onkeydown={(e) => e.key === 'Enter' && onopen(req, { collectionId: col.id, requestId: req.id })}
+    ondblclick={() => (renaming = req.id)}>
+    <span class="verb m-{req.method}">{req.method}</span>
+    {#if renaming === req.id}
+      <input class="rename" value={req.name} use:focus onclick={(e) => e.stopPropagation()}
+        onblur={(e) => finishRename(e, (n) => (req.name = n))} onkeydown={renameKeys} />
+    {:else}
+      <span class="name" title={req.url}>{req.name || req.url || 'Untitled'}</span>
+      <button class="icon del" class:armed={armed === req.id} title="Delete request"
+        onclick={(e) => { e.stopPropagation(); confirmDelete(req.id, () => (col.requests = col.requests.filter((r) => r.id !== req.id))) }}>
+        {armed === req.id ? 'Delete?' : '×'}
+      </button>
+    {/if}
+  </div>
+{/snippet}
+
 <aside class="sidebar">
   <div class="switch">
     <button class:active={view === 'collections'} onclick={() => (view = 'collections')}>Collections</button>
@@ -99,23 +118,21 @@
           {/if}
         </div>
         {#if !collapsed[col.id] || filter}
-          {#each col.requests.filter(matches) as req (req.id)}
-            <div class="row item" class:selected={origin?.requestId === req.id} role="treeitem" aria-selected={origin?.requestId === req.id} tabindex="0"
-              onclick={() => onopen(req, { collectionId: col.id, requestId: req.id })}
-              onkeydown={(e) => e.key === 'Enter' && onopen(req, { collectionId: col.id, requestId: req.id })}
-              ondblclick={() => (renaming = req.id)}>
-              <span class="verb m-{req.method}">{req.method}</span>
-              {#if renaming === req.id}
-                <input class="rename" value={req.name} use:focus onclick={(e) => e.stopPropagation()}
-                  onblur={(e) => finishRename(e, (n) => (req.name = n))} onkeydown={renameKeys} />
-              {:else}
-                <span class="name" title={req.url}>{req.name || req.url || 'Untitled'}</span>
-                <button class="icon del" class:armed={armed === req.id} title="Delete request"
-                  onclick={(e) => { e.stopPropagation(); confirmDelete(req.id, () => (col.requests = col.requests.filter((r) => r.id !== req.id))) }}>
-                  {armed === req.id ? 'Delete?' : '×'}
-                </button>
+          {#each folders(col.requests.filter(matches)) as f (f.name)}
+            {#if f.name}
+              {@const key = `${col.id}/${f.name}`}
+              <div class="row folder sub" role="treeitem" aria-selected="false" aria-expanded={!collapsed[key]} tabindex="0"
+                onclick={() => (collapsed[key] = !collapsed[key])} onkeydown={(e) => e.key === 'Enter' && (collapsed[key] = !collapsed[key])}>
+                <span class="chev">{collapsed[key] ? '▸' : '▾'}</span>
+                <span class="name" title={f.name}>{f.name}</span>
+                <span class="muted">{f.requests.length}</span>
+              </div>
+              {#if !collapsed[key] || filter}
+                {#each f.requests as req (req.id)}{@render item(col, req, true)}{/each}
               {/if}
-            </div>
+            {:else}
+              {#each f.requests as req (req.id)}{@render item(col, req, false)}{/each}
+            {/if}
           {/each}
         {/if}
       {/each}
@@ -222,6 +239,16 @@
   }
   .item {
     padding-left: 22px;
+  }
+  .folder.sub {
+    padding-left: 22px;
+  }
+  .folder.sub .name {
+    font-weight: normal;
+    color: var(--text-dim);
+  }
+  .item.nested {
+    padding-left: 38px;
   }
   .hist {
     padding-left: 10px;

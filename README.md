@@ -51,6 +51,7 @@ Postman and friends have grown into heavy, cloud-connected platforms. Pigeon is 
 - From a URL, a local file, or by dropping the file on the window
 - Paste the address of a Swagger UI page: Pigeon finds the spec behind it
 - Requests come ready to send: server URL, path and query params, headers, auth type and an example JSON body generated from the schemas
+- Requests are grouped into folders by their OpenAPI tag, in the order the spec declares them
 
 **Organization**
 - Collections: save requests, rename (double-click) and delete them

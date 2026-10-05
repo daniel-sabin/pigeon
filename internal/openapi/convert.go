@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/daniel-sabin/pigeon/internal/engine"
@@ -68,7 +69,33 @@ func Parse(data []byte, source string) (storage.Collection, error) {
 	if len(col.Requests) == 0 {
 		return storage.Collection{}, errors.New("the document doesn't define any operation")
 	}
+	c.groupByTag(col.Requests)
 	return col, nil
+}
+
+// groupByTag orders requests by folder: tags declared at the top level come
+// first in their declared order, then the others as they appear. Untagged
+// requests go last; the spec order is kept within a folder.
+func (c *converter) groupByTag(reqs []engine.Request) {
+	rank := map[string]int{}
+	add := func(tag string) {
+		if _, ok := rank[tag]; !ok && tag != "" {
+			rank[tag] = len(rank)
+		}
+	}
+	for _, t := range asSlice(c.root.Get("tags")) {
+		add(strings.TrimSpace(asString(asMap(t).Get("name"))))
+	}
+	for _, r := range reqs {
+		add(r.Folder)
+	}
+	key := func(r engine.Request) int {
+		if r.Folder == "" {
+			return len(rank)
+		}
+		return rank[r.Folder]
+	}
+	sort.SliceStable(reqs, func(i, j int) bool { return key(reqs[i]) < key(reqs[j]) })
 }
 
 // serverURL returns the base URL requests are relative to, without a
@@ -131,6 +158,7 @@ func (c *converter) request(path, method string, item, op *Map) engine.Request {
 	r := engine.Request{
 		ID:      newID(),
 		Name:    name,
+		Folder:  firstTag(op),
 		Method:  strings.ToUpper(method),
 		Params:  []engine.KeyValue{},
 		Headers: []engine.KeyValue{},
@@ -181,6 +209,16 @@ func (c *converter) request(path, method string, item, op *Map) engine.Request {
 	r.URL = c.baseURL + path
 	r.URL = appendQuery(r.URL, r.Params)
 	return r
+}
+
+// firstTag returns the operation's first tag, used as its folder.
+func firstTag(op *Map) string {
+	for _, t := range asSlice(op.Get("tags")) {
+		if tag := strings.TrimSpace(scalarString(t)); tag != "" {
+			return tag
+		}
+	}
+	return ""
 }
 
 // parameters merges path-level and operation-level parameters; the latter

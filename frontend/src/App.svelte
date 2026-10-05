@@ -109,6 +109,7 @@
     }
     const r = cleanRequest(request)
     r.name = col.requests[idx].name
+    r.folder = col.requests[idx].folder
     col.requests[idx] = r
     saved = JSON.stringify(cleanRequest(request))
     persist()
@@ -121,6 +122,8 @@
       collections.push({ id: uid(), name: newCollectionName, requests: [] })
       col = collections[collections.length - 1]
     }
+    // The folder only makes sense in the collection the request came from.
+    if (col.id !== origin?.collectionId) delete request.folder
     request.name = name
     request.id = uid()
     col.requests.push(cleanRequest(request))

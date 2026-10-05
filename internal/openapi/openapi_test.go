@@ -30,20 +30,22 @@ func TestParseOpenAPI3(t *testing.T) {
 
 	var got []string
 	for _, r := range reqs {
-		got = append(got, r.Method+" "+r.Name+" "+r.URL+" auth="+r.Auth.Type)
+		got = append(got, "["+r.Folder+"] "+r.Method+" "+r.Name+" "+r.URL+" auth="+r.Auth.Type)
 	}
+	// Grouped by the first tag, in the order declared under "tags";
+	// untagged operations come last.
 	want := []string{
-		"GET List pets https://api.example.com/v1/pets?limit=20 auth=bearer",
-		"POST createPet https://api.example.com/v1/pets auth=bearer",
-		"GET GET /pets/{petId} https://api.example.com/v1/pets/{petId} auth=none",
-		"DELETE Delete a pet https://api.example.com/v1/pets/{petId} auth=none",
-		"POST Login https://api.example.com/v1/login auth=basic",
+		"[auth] POST Login https://api.example.com/v1/login auth=basic",
+		"[pets] GET List pets https://api.example.com/v1/pets?limit=20 auth=bearer",
+		"[pets] POST createPet https://api.example.com/v1/pets auth=bearer",
+		"[pets] DELETE Delete a pet https://api.example.com/v1/pets/{petId} auth=none",
+		"[] GET GET /pets/{petId} https://api.example.com/v1/pets/{petId} auth=none",
 	}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("requests:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 
-	list := reqs[0]
+	login, list, create, del := reqs[0], reqs[1], reqs[2], reqs[3]
 	wantParams := []engine.KeyValue{{Key: "limit", Value: "20", Enabled: true}, {Key: "status", Value: "available"}}
 	if !equalKV(list.Params, wantParams) {
 		t.Errorf("params = %+v", list.Params)
@@ -64,15 +66,14 @@ func TestParseOpenAPI3(t *testing.T) {
   },
   "friends": []
 }`
-	if create := reqs[1]; create.Body.Type != "json" || create.Body.Raw != wantBody {
+	if create.Body.Type != "json" || create.Body.Raw != wantBody {
 		t.Errorf("body (%s) =\n%s", create.Body.Type, create.Body.Raw)
 	}
 
-	if del := reqs[3]; !equalKV(del.Headers, []engine.KeyValue{{Key: "X-API-Key", Enabled: true}}) {
+	if !equalKV(del.Headers, []engine.KeyValue{{Key: "X-API-Key", Enabled: true}}) {
 		t.Errorf("apiKey header = %+v", del.Headers)
 	}
 
-	login := reqs[4]
 	wantForm := []engine.KeyValue{{Key: "username", Value: "alice", Enabled: true}, {Key: "password", Value: "string"}}
 	if login.Body.Type != "form" || !equalKV(login.Body.Form, wantForm) {
 		t.Errorf("form body (%s) = %+v", login.Body.Type, login.Body.Form)
@@ -104,6 +105,25 @@ func TestParseSwagger2(t *testing.T) {
 	}
 	if !equalKV(reqs[3].Body.Form, []engine.KeyValue{{Key: "name"}}) {
 		t.Errorf("form = %+v (file fields must be skipped)", reqs[3].Body.Form)
+	}
+}
+
+func TestGroupByUndeclaredTags(t *testing.T) {
+	spec := `{"swagger":"2.0","paths":{
+		"/a":{"get":{"tags":["users"]},"post":{"tags":[" orders "]}},
+		"/b":{"get":{}},
+		"/c":{"get":{"tags":["users"]}}}}`
+	col, err := Parse([]byte(spec), "spec.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, r := range col.Requests {
+		got = append(got, r.Folder+":"+r.Method+" "+r.URL)
+	}
+	want := "users:GET http://localhost/a,users:GET http://localhost/c,orders:POST http://localhost/a,:GET http://localhost/b"
+	if strings.Join(got, ",") != want {
+		t.Errorf("got  %s\nwant %s", strings.Join(got, ","), want)
 	}
 }
 

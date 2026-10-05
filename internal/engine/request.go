@@ -41,6 +41,7 @@ type Body struct {
 type Request struct {
 	ID      string     `json:"id"`
 	Name    string     `json:"name"`
+	Folder  string     `json:"folder,omitempty"` // group inside its collection
 	Method  string     `json:"method"`
 	URL     string     `json:"url"`
 	Params  []KeyValue `json:"params"`

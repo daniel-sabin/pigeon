@@ -18,6 +18,10 @@ export function GetHistory() {
   return window['go']['main']['App']['GetHistory']();
 }
 
+export function GetVariables() {
+  return window['go']['main']['App']['GetVariables']();
+}
+
 export function ImportOpenAPIFile() {
   return window['go']['main']['App']['ImportOpenAPIFile']();
 }
@@ -32,6 +36,10 @@ export function ImportOpenAPIURL(arg1) {
 
 export function SaveCollections(arg1) {
   return window['go']['main']['App']['SaveCollections'](arg1);
+}
+
+export function SaveVariables(arg1) {
+  return window['go']['main']['App']['SaveVariables'](arg1);
 }
 
 export function SendRequest(arg1, arg2) {

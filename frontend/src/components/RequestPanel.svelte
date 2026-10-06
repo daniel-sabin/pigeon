@@ -118,7 +118,7 @@
         {#if request.auth.type === 'bearer'}
           <label class="field">
             <span>Token</span>
-            <input class="mono" bind:value={request.auth.token} spellcheck="false" />
+            <input class="mono" bind:value={request.auth.token} placeholder={'{{token}}'} spellcheck="false" />
           </label>
         {:else if request.auth.type === 'basic'}
           <label class="field">

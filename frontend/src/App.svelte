@@ -5,6 +5,7 @@
   import ResponsePanel from './components/ResponsePanel.svelte'
   import SaveDialog from './components/SaveDialog.svelte'
   import ImportDialog from './components/ImportDialog.svelte'
+  import VariablesDialog from './components/VariablesDialog.svelte'
   import { OnFileDrop, OnFileDropOff } from '../wailsjs/runtime/runtime'
   import * as api from './lib/api'
   import { paramsFromUrl } from './lib/url'
@@ -25,6 +26,7 @@
   let history = $state<HistoryEntry[]>([])
   let showSave = $state(false)
   let showImport = $state(false)
+  let showVariables = $state(false)
   let notice = $state('')
   let noticeError = $state(false)
 
@@ -165,7 +167,7 @@
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (!e.metaKey || showSave) return
+    if (!e.metaKey || showSave || showVariables) return
     if (e.key === 'Enter') {
       e.preventDefault()
       send()
@@ -209,6 +211,7 @@
       onclearhistory={clearHistory}
       onnew={newTab}
       onimport={() => (showImport = true)}
+      onvariables={() => (showVariables = true)}
     />
 
     <main bind:this={main}>
@@ -225,6 +228,10 @@
 
 {#if showImport}
   <ImportDialog onimport={addImported} onclose={() => (showImport = false)} />
+{/if}
+
+{#if showVariables}
+  <VariablesDialog onclose={() => (showVariables = false)} onerror={(msg) => flash(msg, true)} />
 {/if}
 
 {#if showSave}

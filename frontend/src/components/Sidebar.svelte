@@ -12,8 +12,9 @@
     onclearhistory: () => void
     onnew: () => void
     onimport: () => void
+    onvariables: () => void
   }
-  let { collections = $bindable(), history, origin, onopen, onchange, onclearhistory, onnew, onimport }: Props = $props()
+  let { collections = $bindable(), history, origin, onopen, onchange, onclearhistory, onnew, onimport, onvariables }: Props = $props()
 
   let view = $state<'collections' | 'history'>('collections')
   let collapsed = $state<Record<string, boolean>>({})
@@ -93,6 +94,7 @@
       <button class="icon" title="New request (⌘N)" onclick={onnew}>＋</button>
       <button class="icon" title="New collection" onclick={addCollection}>⊞</button>
       <button class="icon" title="Import from OpenAPI / Swagger" onclick={onimport}>⇣</button>
+      <button class="icon" title="Variables, used as {'{{name}}'} in any request" onclick={onvariables}>{'{x}'}</button>
     </div>
     <div class="list">
       {#if collections.length === 0}

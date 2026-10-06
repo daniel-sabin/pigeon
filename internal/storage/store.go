@@ -66,6 +66,24 @@ func (s *Store) SaveCollections(cols []Collection) error {
 	return s.write("collections.json", cols)
 }
 
+// Variables are global: {{name}} placeholders resolve against them in every
+// request, wherever it was opened from.
+func (s *Store) Variables() ([]engine.KeyValue, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	vars := []engine.KeyValue{}
+	if err := s.read("variables.json", &vars); err != nil {
+		return nil, err
+	}
+	return vars, nil
+}
+
+func (s *Store) SaveVariables(vars []engine.KeyValue) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.write("variables.json", vars)
+}
+
 func (s *Store) History() ([]HistoryEntry, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

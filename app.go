@@ -39,8 +39,8 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// SendRequest executes req and records it in the history. runID identifies the
-// call so it can be aborted with CancelRequest.
+// SendRequest resolves {{variables}} in req, executes it and records it in the
+// history. runID identifies the call so it can be aborted with CancelRequest.
 func (a *App) SendRequest(runID string, req engine.Request) engine.Response {
 	ctx, cancel := context.WithCancel(a.ctx)
 	a.mu.Lock()
@@ -53,11 +53,15 @@ func (a *App) SendRequest(runID string, req engine.Request) engine.Response {
 		cancel()
 	}()
 
-	resp := engine.Send(ctx, a.client, req)
+	vars, err := a.store.Variables()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "loading variables: %v", err)
+	}
+	resp := engine.Send(ctx, a.client, engine.ApplyVariables(req, vars))
 
 	entry := storage.HistoryEntry{
 		ID:         newID(),
-		Request:    req,
+		Request:    req, // placeholders, not the resolved secrets
 		Status:     resp.Status,
 		Error:      resp.Error,
 		DurationMs: resp.DurationMs,
@@ -83,6 +87,14 @@ func (a *App) GetCollections() ([]storage.Collection, error) {
 
 func (a *App) SaveCollections(cols []storage.Collection) error {
 	return a.store.SaveCollections(cols)
+}
+
+func (a *App) GetVariables() ([]engine.KeyValue, error) {
+	return a.store.Variables()
+}
+
+func (a *App) SaveVariables(vars []engine.KeyValue) error {
+	return a.store.SaveVariables(vars)
 }
 
 func (a *App) GetHistory() ([]storage.HistoryEntry, error) {

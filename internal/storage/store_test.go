@@ -41,3 +41,23 @@ func TestStore(t *testing.T) {
 		t.Fatalf("history not cleared: %d", len(h))
 	}
 }
+
+func TestVariables(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	vars, err := s.Variables()
+	if err != nil || vars == nil || len(vars) != 0 {
+		t.Fatalf("empty store should give an empty, non-nil list: %#v %v", vars, err)
+	}
+	want := []engine.KeyValue{{Key: "token", Value: "abc", Enabled: true}}
+	if err := s.SaveVariables(want); err != nil {
+		t.Fatal(err)
+	}
+	vars, err = s.Variables()
+	if err != nil || len(vars) != 1 || vars[0] != want[0] {
+		t.Fatalf("variables round trip: %+v %v", vars, err)
+	}
+}

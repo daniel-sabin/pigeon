@@ -35,6 +35,7 @@ Postman and friends have grown into heavy, cloud-connected platforms. Pigeon is 
 - Headers table: toggle a row on/off without deleting it
 - Body: JSON (with syntax highlighting and one-click formatting), plain text, XML, or URL-encoded form
 - Auth helpers: Bearer token and Basic auth
+- Variables: set a value once (e.g. `token`) and write `{{token}}` in the URL, params, headers, body or auth of any request. The history keeps the placeholder, not the secret
 - Cancel a request while it's in flight
 - Requests are sent from Go (`net/http`), not from the browser engine, so there are **no CORS restrictions**
 
@@ -135,7 +136,8 @@ Pigeon stores everything in:
 ```
 ~/Library/Application Support/Pigeon/
 ├── collections.json   # your saved collections and requests
-└── history.json       # the last 300 requests sent
+├── history.json       # the last 300 requests sent
+└── variables.json     # your {{variables}} (stored in plain text)
 ```
 
 Both are plain, pretty-printed JSON. To back them up or sync them between machines, copy the folder or put it in a git repository. To reset Pigeon, quit it and delete the folder.
